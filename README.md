@@ -8,3 +8,8 @@
 - rabbitmq-service.yaml
 - rabbitmq-statefulset-pvc.yaml
 - rabbitmq-statefulset.yaml
+
+## 集群对外访问
+
+由于官方给出的解决方案中，使用hostname作为自动识别主机的节点名，而此时，statefulset必须设置为 headless service .  如果要让 rabbitmq 暴露出端口 ，对外访问。 
+
