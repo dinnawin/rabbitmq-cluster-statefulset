@@ -1,0 +1,26 @@
+kind: Service
+apiVersion: v1
+metadata:
+  namespace: vems
+  name: rabbitmqs
+  labels:
+    app: rabbitmqs
+    type: LoadBalancer
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+   - name: http
+     protocol: TCP
+     port: 15671
+     targetPort: 15671
+   - name: amqp
+     protocol: TCP
+     port: 5672
+     targetPort: 5672
+   - name: amqp1
+     protocol: TCP
+     port: 5671
+     targetPort: 5671
+  selector:
+    app: rabbitmqs
