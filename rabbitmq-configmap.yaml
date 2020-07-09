@@ -1,0 +1,132 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rabbitmq-config
+  namespace: vems
+data:
+  enabled_plugins: |
+      [rabbitmq_management,rabbitmq_peer_discovery_k8s].
+  rabbitmq.conf: |
+      ## Cluster formation. See https://www.rabbitmq.com/cluster-formation.html to learn more.
+      cluster_formation.peer_discovery_backend  = rabbit_peer_discovery_k8s
+      cluster_formation.k8s.host = kubernetes.default.svc.cluster.local
+      
+      cluster_formation.randomized_startup_delay_range.min = 0
+      cluster_formation.randomized_startup_delay_range.max = 3
+      cluster_formation.k8s.service_name = rabbitmqs
+      cluster_formation.k8s.hostname_suffix = .rabbitmqs.vems.svc.cluster.local
+      ## Should RabbitMQ node name be computed from the pod's hostname or IP address?
+      ## IP addresses are not stable, so using [stable] hostnames is recommended when possible.
+      ## Set to "hostname" to use pod hostnames.
+      ## When this value is changed, so should the variable used to set the RABBITMQ_NODENAME
+      ## environment variable.
+      # cluster_formation.k8s.address_type = hostname
+      cluster_formation.k8s.address_type = hostname
+      ## How often should node cleanup checks run?
+      cluster_formation.node_cleanup.interval = 30
+      ## Set to false if automatic removal of unknown/absent nodes
+      ## is desired. This can be dangerous, see
+      ##  * https://www.rabbitmq.com/cluster-formation.html#node-health-checks-and-cleanup
+      ##  * https://groups.google.com/forum/#!msg/rabbitmq-users/wuOfzEywHXo/k8z_HWIkBgAJ
+      cluster_formation.node_cleanup.only_log_warning = true
+      cluster_partition_handling = autoheal
+      ## See https://www.rabbitmq.com/ha.html#master-migration-data-locality
+      queue_master_locator=min-masters
+      ## This is just an example.
+      ## This enables remote access for the default user with well known credentials.
+      ## Consider deleting the default user and creating a separate user with a set of generated
+      ## credentials instead.
+      ## Learn more at https://www.rabbitmq.com/access-control.html#loopback-users
+      loopback_users.guest = false
+
+      management.ssl.port       = 15671
+      management.ssl.cacertfile = /etc/rabbitmq/cacert.pem
+      management.ssl.certfile   = /etc/rabbitmq/192.168.160.146.cert.pem
+      management.ssl.keyfile    = /etc/rabbitmq/192.168.160.146.key.pem
+
+      ssl_options.verify               = verify_peer
+      ssl_options.cacertfile           = /etc/rabbitmq/cacert.pem
+      ssl_options.certfile             = /etc/rabbitmq/192.168.160.146.cert.pem
+      ssl_options.keyfile              = /etc/rabbitmq/192.168.160.146.key.pem
+      ssl_options.fail_if_no_peer_cert = true
+      
+      default_user = Vemtest
+      default_pass = 1rowWBird2
+      default_vhost = /
+      default_permissions.configure = .*
+      default_permissions.read = .*
+      default_permissions.write = .*
+      default_user_tags.administrator = true
+      default_user_tags.management = true
+
+      listeners.tcp.default = 5672
+      management.tcp.port = 15672
+      listeners.ssl.default = 5671
+    
+      vm_memory_high_watermark_paging_ratio = 0.5
+  cacert.pem: |- 
+      -----BEGIN CERTIFICATE-----
+      MIICwjCCAaqgAwIBAgIJAM3l7lXJ8DdBMA0GCSqGSIb3DQEBCwUAMBExDzANBgNV
+      BAMMBlNuYmNDQTAeFw0xODA4MjcwODMyNDhaFw0yODA4MjQwODMyNDhaMBExDzAN
+      BgNVBAMMBlNuYmNDQTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAMsp
+      UkWEp8YZoD8VTYjjs9CEXlPNKp56pP16k7GswJpnM8tTF+95A5JcNKTrkZMvJKcE
+      +IHdrosaZciyT2IelVraKnYccb03Nh2Evw8P5uNC8naLqSFmYSb20l/2233ktpeA
+      c/eG289kuIZI1VKcj8nFm9sEBIObGFhAqfugMbjwj99fG/k90tQq4v765YqF9syl
+      eSmmb4x5dCy6p7AFQWV0AkWsvmxbcu0uJnlajkZ+vrf0MrxIDkM+laRQ1brZTfZb
+      ze75S1TmSODbtep3/W6BhW1Bc/3VCg5k5dpn46JqJwA5qQ3j93YV7+6MedoSKpjP
+      gJFKO8h7GHkIJ1lGWkECAwEAAaMdMBswDAYDVR0TBAUwAwEB/zALBgNVHQ8EBAMC
+      AQYwDQYJKoZIhvcNAQELBQADggEBAAnE5HmovmxI1QcfD4QTZd/6Jq0lMm2teVE+
+      VD/hiV482JBYyllZ1lYuzDo+mOE30nHI5XS6QEA2ZT2bREJmFi8nCX1wz4mO5JXi
+      EbV1mP6ELF0JGWUrSl0QLs6cQXmRTFd4Myl4+xNBHuTLx2AphmVXnm5RBjtvPW7n
+      fQYVG/qio2rXHh6r7d38rWscvz2BFWs9qJqoTjZ/CKklFBRbzSMO0Ectbr+uc6Hg
+      U7F1In+dJdmjxMYdUExf8ccTvtc7WLB2efI535zckbE9EFEiLli0EPhTEUJY05KA
+      HtD7tz1rALPXiQACU7p8hN2/uJUoNsiVwm8OLVrdBThZg4BZL48=
+      -----END CERTIFICATE-----
+  192.168.160.146.cert.pem: |- 
+      -----BEGIN CERTIFICATE-----
+      MIIC5jCCAc6gAwIBAgIBATANBgkqhkiG9w0BAQsFADARMQ8wDQYDVQQDDAZTbmJj
+      Q0EwHhcNMTgwODI3MDgzNDExWhcNMjgwODI0MDgzNDExWjArMRgwFgYDVQQDDA8x
+      OTIuMTY4LjE2MC4xNDYxDzANBgNVBAoMBnNlcnZlcjCCASIwDQYJKoZIhvcNAQEB
+      BQADggEPADCCAQoCggEBAMsFf0FeS4b13CeBlx873LgQZvgE39jWmtu6s2t6bcDH
+      BWeBH8rtzI25ajqlaXaL/8HXASSlYWQCv3av3P8xpvmprhakKpjDIIyzh9ka9Gu9
+      oBurhdBsYax2wMsCl6GPWK0n4q0JkcN0M7oPw0hfVutJT3C3rwrv2G5lmo9X8oNA
+      Z3UQt9ymVly3ZOXPrKG1W89X7yhpGqSEblXC5uPqllgbj9gelwVeBtK/w3AJiNaZ
+      ZKprV+GaoIQZx82/6QecITx2ZuPnB/I/y7CkU8bzIsx4N3+Sr+W3jJc9Bp5BqTXG
+      Hoy+htn24eTIeHJglWWzgYuvG8L99Gi56Pi/T1yokcECAwEAAaMvMC0wCQYDVR0T
+      BAIwADALBgNVHQ8EBAMCBaAwEwYDVR0lBAwwCgYIKwYBBQUHAwEwDQYJKoZIhvcN
+      AQELBQADggEBALFoZPr1UzCEvjGl0AhfrlDgse53bjje8v5/uUeX0vIy/vLXnjyq
+      NgH++P6R6A721og1WB4H//wS11ejl+wgqwjQ2t6U5pczDdz6AEhkme+yzJQDguqX
+      DGzbhJVuZwuYKSPbs6y2YdUggLOx7QWCJpEPwpDZBZP/UJDBoEvDFEHcmdNZ0swV
+      wEoDLcP/9hzDDMrrVGcd3IagXD6FEPBjt2hJjOyrqic5RtjNHT3Ib9NpoJjsjH7S
+      mDDSySQszWp9wmWk/XdqvCSm+0xoaNtWVaxtyURkvz80o2CgdTels7KLeXpgPEgM
+      KcY+1mVD+wNXdxIT6sZ71H/gGkx85Z895EQ=
+      -----END CERTIFICATE-----
+  192.168.160.146.key.pem: |-
+      -----BEGIN RSA PRIVATE KEY-----
+      MIIEowIBAAKCAQEAywV/QV5LhvXcJ4GXHzvcuBBm+ATf2Naa27qza3ptwMcFZ4Ef
+      yu3MjblqOqVpdov/wdcBJKVhZAK/dq/c/zGm+amuFqQqmMMgjLOH2Rr0a72gG6uF
+      0GxhrHbAywKXoY9YrSfirQmRw3Qzug/DSF9W60lPcLevCu/YbmWaj1fyg0BndRC3
+      3KZWXLdk5c+sobVbz1fvKGkapIRuVcLm4+qWWBuP2B6XBV4G0r/DcAmI1plkqmtX
+      4ZqghBnHzb/pB5whPHZm4+cH8j/LsKRTxvMizHg3f5Kv5beMlz0GnkGpNcYejL6G
+      2fbh5Mh4cmCVZbOBi68bwv30aLno+L9PXKiRwQIDAQABAoIBAEl3v8lD+kjoh7a0
+      Kp/e5cymAt0VxnuNjZSeR3dJYpY0bzw5eevRighvZIW8fiGsH+1hhMRiJJAwfmDQ
+      20RuD2KhiKIg3llRo2HHRg3Gt1SV1m6s70uxLNdgUfwlAAIzAYAHwvujTuBQGLfo
+      JF74QVf7u4eqsOlgSg4JLplY1iWwbr29dTedBmjoQ596lAw+duZpBGu7p2QgkuKX
+      w3ua4kFoo/39LGZla5lRfX1wTS9nA3KmytkXN8+7VcwnEe3ZY/HmXJxDnrPGAFNU
+      FjdVR0Pt9uWGXq08IuA+o/Bid1xijz/Xnb53+Rr8mamD/s75UI2TMN++eYKr2BoZ
+      /ejiLwECgYEA/p9dq4mpRQLsDlZF1nhM/TqgbHKjajSeitb3qyI63TKxPYR+TG9O
+      xKpyh6x1Q6CPxHNae96k6dp9LRvsIMiG/EPnfnmbstSnr8t0jtHaQ1e+velo6BYh
+      h7eLc1Vnj1aomdRbwlMw2KrXBzyTVBlXUKVMuRTp3LdRPDfz4IZDJpkCgYEAzB6q
+      2wwGBuGEC9Ky8l6TTBdqlKnw1UUcADem2wCdIwO0nXhxrUt45HnEHT+9FooPHy61
+      WZLDGYHlxhf54rRRL2JnoeC6Wm7YybbEJ3On+oPo5Yk9S2ukhogzEB8dzmjUxKPu
+      j0QWvVTTCcbnX7/m7P5ZxEXa01SbCHwIh3X6xWkCgYEAvrobjTnR7JrSva6MI6n7
+      aZg3wORiWlTOCYwa+zrpwvWM5FrRzGl4JELVBaH+OMkVx/7sYWsWNwHt0BNhXfE3
+      g9FNn2RyZ5N5hGovhifViao5e8JSTb7+IM4xDBSGPU2Zf5kdnsN4DGR0K7yJU26k
+      BAm+Hcl3oFhE5om3CZEozckCgYAo3PrXX1DVj9Afjc7FNqnGUenEWUEdcPhqEroU
+      ncrXd6Zw3+viBXnuQ3I/aMMx//GHDJLBm9/y+05EmggsmmymT8zvW03zTL2ZpD0g
+      qMa4IDA/w3nB34rQY/PVBmWxLMtrkmXvyHHE9XZKPseTI5fXWhQedt2X8RgYWrxa
+      YgQSAQKBgHOGdTAKb8NL5cJ83YCQahJzj44nlTcuwJuxlE7b23tw3CbS+JlgYVRy
+      +q/1Y24TgmqNgo3GOuiUhEnNAwF/fYTh86tpIpXGo19nMHPvx/vx7oitRSaws0VB
+      qJXJhf6gON+9j+syd2BilKAlxp+h4hpES2qoI2guaOzRvOfc1HCO
+      -----END RSA PRIVATE KEY-----
+
